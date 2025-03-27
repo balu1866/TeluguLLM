@@ -1,5 +1,7 @@
 import os
+import time
 
+from datetime import timedelta
 from dotenv import load_dotenv
 from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -48,7 +50,7 @@ def get_model_trainer(model, tokenizer, training_args, train_dataset, eval_datas
     
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
-        mlm=False  # Set to False for causal language modeling
+        mlm=False  
     )
     trainer = Trainer(
         model = model,
@@ -69,21 +71,21 @@ if __name__ == "__main__":
     print(model.hf_device_map)
 
     training_args = TrainingArguments(
-        output_dir="./lora-mistral-telugu",  # Directory to save the model and checkpoints
-        evaluation_strategy="epoch",  # Evaluate at the end of each epoch   
+        output_dir="./lora-mistral-telugu",  
+        evaluation_strategy="epoch",   
         per_device_train_batch_size=4,
         per_device_eval_batch_size=4,
         gradient_accumulation_steps=4,
         num_train_epochs=2,
-        save_strategy="epoch",  # Save the model at the end of each epoch
-        logging_steps=10,  # Log every 10 steps
-        learning_rate=2e-4,  # Learning rate for the optimizer
-        weight_decay=0.01,  # Weight decay for regularization
+        save_strategy="epoch", 
+        logging_steps=10,  
+        learning_rate=2e-4, 
+        weight_decay=0.01,  
         push_to_hub=False,
         report_to="none",
         label_names=["labels"],
-        fp16=True,  # Use mixed precision training (if supported by your hardware)
-        load_best_model_at_end=True,  # Load the best model at the end of training
+        fp16=True,  
+        load_best_model_at_end=True, 
     )
 
 
@@ -92,11 +94,20 @@ if __name__ == "__main__":
                                 training_args = training_args, 
                                 train_dataset = train, 
                                 eval_dataset = val)
+    
+    start_time = time.time() 
 
     trainer.train() 
+
+    end_time = time.time() 
+    elapsed_time = end_time - start_time  
+    formatted_time = str(timedelta(seconds=int(elapsed_time)))  
+    print(f"Training time: {formatted_time}")  
+    
+
     results = trainer.evaluate()
-    print(results)  # Print the evaluation results
-    trainer.save_model("./lora-mistral-telugu")  # Save the final model after training
-    tokenizer.save_pretrained("./lora-mistral-telugu")  # Save the tokenizer as well
+    print(results)  
+    trainer.save_model("./lora-mistral-telugu") 
+    tokenizer.save_pretrained("./lora-mistral-telugu")  
 
     print("Training complete. Model and tokenizer saved.")

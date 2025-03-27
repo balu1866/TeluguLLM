@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 .teluguLLM
+dataset.json
+tokenized_data/
 # C extensions
 *.so
 
