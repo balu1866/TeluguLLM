@@ -1,5 +1,5 @@
 
-# Telugu LLM Data Preparation
+# Telugu LLM Data Preparation and Model Training
 
 ## 🧠 Project Overview
 
@@ -81,3 +81,64 @@ This dataset can be used for:
 - Fine-tuning multilingual LLMs like Mistral, LLaMA, etc.
 - Building chatbots that respond in Telugu
 - Teaching LLMs transliteration tasks
+
+---
+
+## 🏋️‍♂️ Model Training
+
+This project fine-tunes the [Mistral-7B-v0.3](https://huggingface.co/mistralai/Mistral-7B-v0.3) model using **Parameter-Efficient Fine-Tuning (PEFT)** with **LoRA (Low-Rank Adaptation)**.
+
+### 🔧 Key Components
+
+- **Tokenizer & Base Model**: Loaded with `AutoTokenizer` and `AutoModelForCausalLM`
+- **Quantization**: `load_in_8bit=True` for memory-efficient training
+- **LoRA Config**:
+  ```python
+  LoraConfig(
+      r=8,
+      lora_alpha=32,
+      lora_dropout=0.05,
+      task_type=TaskType.CAUSAL_LM
+  )
+  ```
+
+### 🧪 TrainingArguments
+
+```python
+TrainingArguments(
+    output_dir="./lora-mistral-telugu",
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    num_train_epochs=2,
+    learning_rate=2e-4,
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    fp16=True,
+    logging_steps=10,
+    load_best_model_at_end=True,
+)
+```
+
+### 🧑‍🏫 Training Process
+
+The Hugging Face `Trainer` is used to train the model:
+```python
+trainer = Trainer(
+    model=model,
+    tokenizer=tokenizer,
+    args=training_args,
+    train_dataset=tokenized_val,
+    eval_dataset=tokenized_val,
+    data_collator=data_collator
+)
+trainer.train()
+results = trainer.evaluate()
+```
+
+Final fine-tuned model is saved in:
+```
+./lora-mistral-telugu
+```
+
+---
+
